@@ -1,0 +1,75 @@
+module srl-ping-mesh {
+
+    yang-version "1.1";
+
+    namespace "urn:srl_nokia_demo/srl-ping-mesh";
+
+    prefix "srl_ping_mesh";
+
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    import srl_nokia-network-instance {
+        prefix srl_nokia-netinst;
+    }
+    import srl_nokia-bgp-evpn {
+        prefix srl_nokia-bgp-evpn;
+    }
+    import srl_nokia-interfaces {
+        prefix srl_nokia-if;
+    }
+    import srl_nokia-if-ip {
+        prefix srl_nokia-if-ip;
+    }
+    import srl_nokia-extensions {
+        prefix srl_nokia-ext;
+    }
+    import srl_nokia-features { prefix srl-feat; }
+
+    revision "2021-11-11" {
+        description "Initial revision";
+        reference "TBD";
+    }
+
+    grouping bgp-ping-mesh-state {
+      container bgp-ping-mesh {
+        description "Operational state for BGP Ping Mesh agent";
+
+        presence "BGP ping mesh state";
+        config false;
+
+        list peer {
+          key "ip";
+
+          leaf ip {
+            type srl_nokia-comm:ip-address;
+            srl_nokia-ext:show-importance "high";
+            description "Connection IP for this peer";
+          }
+
+          leaf last-update {
+            type srl_nokia-comm:date-and-time-delta;
+            srl_nokia-ext:show-importance "high";
+            description "The date and time of the last update of this entry";
+          }
+
+          leaf rtt {
+            type uint64;
+            description "Observed RTT in us";
+          }
+
+          leaf ttl {
+            type uint8;
+            description "Observed IP TTL hopcount";
+          }
+
+          leaf keep-alives {
+            type uint64;
+            description "Number of keep-alive packets observed";
+          }
+        }
+      }
+    }
+
+    uses bgp-ping-mesh-state;
+}

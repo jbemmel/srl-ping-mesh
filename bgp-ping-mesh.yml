@@ -1,0 +1,16 @@
+# See example_config.yml for an explanation of all the accepted fields
+bgp_ping_mesh:
+   path: /opt/bgp-ping-mesh
+   launch-command: sudo /opt/bgp-ping-mesh/scripts/bgp-ping-mesh.sh
+   search-command: python3 /opt/bgp-ping-mesh/bgp-ping-mesh.py
+   wait-for-config: Yes
+   failure-threshold: 100
+   failure-action: wait=forever
+   author: 'Nokia'
+   version-command: ' cat /opt/bgp-ping-mesh/agent_version'
+   yang-modules:
+       names:
+           - "bgp-ping-mesh"
+       source-directories:
+           - "/opt/bgp-ping-mesh/yang/"
+           - "/opt/srlinux/models/srl_nokia/models/common/"
