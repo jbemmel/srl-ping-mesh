@@ -7,6 +7,8 @@ topology:
       image: srl/bgp-ping-mesh:latest
       binds:
       - ../src/bgp-ping-mesh/sniff.py:/tmp/sniff.py
+      extras:
+        srl-agents: [ ../bgp-ping-mesh.yml ]
 
   nodes:
     srl1:

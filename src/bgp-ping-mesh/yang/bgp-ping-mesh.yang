@@ -37,7 +37,7 @@ module srl-ping-mesh {
     grouping bgp-ping-mesh-flag {
       leaf ping-mesh {
         type srl_nokia-comm:admin-state;
-        description "Measure rtt and ttl for this BGP transport, for each peer"; 
+        description "Measure rtt and ttl for this BGP transport, for each peer";
       }
     }
 
@@ -70,7 +70,7 @@ module srl-ping-mesh {
 
           leaf ttl {
             type uint8;
-            description "Observed IP TTL hopcount";
+            description "Observed IP TTL hopcount coming from peer";
           }
 
           leaf keep-alives {
