@@ -2,12 +2,15 @@ ARG SR_LINUX_RELEASE
 FROM srl/custombase:$SR_LINUX_RELEASE AS target-image
 
 # Create a Python virtual environment
+RUN sudo python3 -m venv /opt/bgp-ping-mesh/.venv --system-site-packages --without-pip --upgrade
 ENV VIRTUAL_ENV=/opt/bgp-ping-mesh/.venv
-RUN sudo python3 -m venv $VIRTUAL_ENV --system-site-packages --without-pip --upgrade
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install scapy library and netns packages
 RUN sudo -E python3 -m pip install scapy netns
+
+# Fix scapy bug
+COPY scapy/sendrecv.py /usr/local/lib/python3.6/site-packages/scapy/sendrecv.py
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/
 COPY --chown=srlinux:srlinux ./bgp-ping-mesh.yml /etc/opt/srlinux/appmgr

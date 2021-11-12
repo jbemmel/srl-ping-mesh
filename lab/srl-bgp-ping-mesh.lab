@@ -1,0 +1,20 @@
+name: bgp-ping-mesh
+
+topology:
+  kinds:
+    srl:
+      type: ixrd2
+      image: srl/bgp-ping-mesh:latest
+
+  nodes:
+    srl1:
+      kind: srl
+      startup-config: srl1.conf.json
+
+    srl2:
+      kind: srl
+      startup-config: srl2.conf.json
+
+  links:
+    # BGP connection between SRL nodes
+    - endpoints: ["srl1:e1-1", "srl2:e1-1"]
