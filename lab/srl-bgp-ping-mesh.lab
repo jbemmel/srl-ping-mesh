@@ -5,6 +5,8 @@ topology:
     srl:
       type: ixrd2
       image: srl/bgp-ping-mesh:latest
+      binds:
+      - ../src/bgp-ping-mesh/sniff.py:/tmp/sniff.py
 
   nodes:
     srl1:

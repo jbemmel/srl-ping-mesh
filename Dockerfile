@@ -18,7 +18,7 @@ RUN yum install -y python3 git && cd /tmp && \
     python3 setup.py install
 
 FROM target-image AS final
-COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/scapy $VIRTUAL_ENV/lib/python3.6/site-packages/
+COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/scapy* $VIRTUAL_ENV/lib/python3.6/site-packages/
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/
 COPY --chown=srlinux:srlinux ./bgp-ping-mesh.yml /etc/opt/srlinux/appmgr

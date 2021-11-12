@@ -21,6 +21,9 @@ module srl-ping-mesh {
     import srl_nokia-if-ip {
         prefix srl_nokia-if-ip;
     }
+    import srl_nokia-bgp {
+        prefix srl_nokia-bgp;
+    }
     import srl_nokia-extensions {
         prefix srl_nokia-ext;
     }
@@ -29,6 +32,13 @@ module srl-ping-mesh {
     revision "2021-11-11" {
         description "Initial revision";
         reference "TBD";
+    }
+
+    grouping bgp-ping-mesh-flag {
+      leaf ping-mesh {
+        type srl_nokia-comm:admin-state;
+        description "Measure rtt and ttl for this BGP transport, for each peer"; 
+      }
     }
 
     grouping bgp-ping-mesh-state {
@@ -69,6 +79,13 @@ module srl-ping-mesh {
           }
         }
       }
+    }
+
+    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:group/srl_nokia-bgp:transport" {
+        uses bgp-ping-mesh-flag;
+    }
+    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:neighbor/srl_nokia-bgp:transport" {
+        uses bgp-ping-mesh-flag;
     }
 
     uses bgp-ping-mesh-state;
