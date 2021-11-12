@@ -8,10 +8,17 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install scapy library and netns packages
 RUN sudo VIRTUAL_ENV=/opt/bgp-ping-mesh/.venv PATH="/opt/bgp-ping-mesh/.venv/bin:$PATH" \
-    python3 -m pip install scapy netns
+    python3 -m pip install netns
 
-# Fix scapy bug
-COPY scapy/sendrecv.py $VIRTUAL_ENV/lib/python3.6/site-packages/scapy/sendrecv.py
+# Need latest version to fix some scapy bugs
+FROM centos:8 AS latest-scapy
+RUN yum install -y python3 git && cd /tmp && \
+    git clone https://github.com/secdev/scapy && \
+    cd scapy && \
+    python3 setup.py install
+
+FROM target-image AS final
+COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/scapy $VIRTUAL_ENV/lib/python3.6/site-packages/
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/
 COPY --chown=srlinux:srlinux ./bgp-ping-mesh.yml /etc/opt/srlinux/appmgr
