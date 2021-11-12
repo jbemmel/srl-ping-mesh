@@ -16,5 +16,6 @@ topology:
       startup-config: srl2.conf.json
 
   links:
-    # BGP connection between SRL nodes
+    # BGP connection between SRL nodes, 2 uplinks
     - endpoints: ["srl1:e1-1", "srl2:e1-1"]
+    - endpoints: ["srl1:e1-2", "srl2:e1-2"]
