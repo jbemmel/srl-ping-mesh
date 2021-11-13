@@ -148,12 +148,25 @@ class BGPMonitoringThread(Thread):
                s.update( { 'time': packet.time, 'ts': tsval, 'count': s['count']+1 } )
             elif tsecr==s['ts']:
                s['ts'] = 0 # Update to match only once
+               rtt = int( (packet.time - s['time']) * 1e06 )
+               s['min_rtt'] = min( s['min_rtt'] if 'min_rtt' in s else rtt, rtt )
+               s['max_rtt'] = max( s['max_rtt'] if 'max_rtt' in s else rtt, rtt )
+               s['sum_rtt'] = (s['sum_rtt']+rtt) if 'sum_rtt' in s else rtt
+
+               if 'last_ttl' in s and s['last_ttl']!=ip.ttl:
+                  s['ttl_changes'] = 1 if 'ttl_changes' not in s else (s['ttl_changes']+1)
+               s['last_ttl'] = ip.ttl
+
                now_ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                data = {
                  'last_update': { "value" : now_ts },
-                 'rtt': int( (packet.time - s['time']) * 1e06 ),
+                 'last_rtt_in_us': rtt,
+                 'min_rtt_in_us': s['min_rtt'],
+                 'max_rtt_in_us': s['max_rtt'],
+                 'avg_rtt_in_us': s['sum_rtt'] // s['count'],
                  'hops': 64 - ip.ttl,
-                 'keep_alives': s['count']
+                 'keep_alives': s['count'],
+                 'hops_changes': s['ttl_changes'] if 'ttl_changes' in s else 0,
                }
                Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data )] )
             else:

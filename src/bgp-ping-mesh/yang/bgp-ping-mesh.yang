@@ -2,74 +2,99 @@ module srl-ping-mesh {
 
     yang-version "1.1";
 
-    namespace "urn:srl_nokia_demo/srl-ping-mesh";
+    namespace "urn:srl_nokia_demo/bgp-ping-mesh";
 
-    prefix "srl_ping_mesh";
+    prefix "bgp_ping_mesh";
 
     import srl_nokia-common {
         prefix srl_nokia-comm;
     }
-    import srl_nokia-network-instance {
-        prefix srl_nokia-netinst;
-    }
-    import srl_nokia-bgp-evpn {
-        prefix srl_nokia-bgp-evpn;
-    }
-    import srl_nokia-interfaces {
-        prefix srl_nokia-if;
-    }
-    import srl_nokia-if-ip {
-        prefix srl_nokia-if-ip;
-    }
-    import srl_nokia-bgp {
-        prefix srl_nokia-bgp;
-    }
-    import srl_nokia-extensions {
-        prefix srl_nokia-ext;
-    }
-    import srl_nokia-features { prefix srl-feat; }
+
+    // import srl_nokia-network-instance {
+    //     prefix srl_nokia-netinst;
+    // }
+    // import srl_nokia-bgp-evpn {
+    //     prefix srl_nokia-bgp-evpn;
+    // }
+    // import srl_nokia-interfaces {
+    //     prefix srl_nokia-if;
+    // }
+    // import srl_nokia-if-ip {
+    //     prefix srl_nokia-if-ip;
+    // }
+    // import srl_nokia-bgp {
+    //     prefix srl_nokia-bgp;
+    // }
+    // import srl_nokia-extensions {
+    //     prefix srl_nokia-ext;
+    // }
+    // import srl_nokia-features { prefix srl-feat; }
 
     revision "2021-11-11" {
         description "Initial revision";
         reference "TBD";
     }
 
-    grouping bgp-ping-mesh-flag {
-      leaf ping-mesh {
-        type srl_nokia-comm:admin-state;
-        description "Measure rtt and ttl for this BGP transport, for each peer";
-      }
-    }
+    // grouping bgp-ping-mesh-flag {
+    //   leaf ping-mesh {
+    //     type srl_nokia-comm:admin-state;
+    //     description "Measure rtt and ttl for this BGP transport, for each peer";
+    //   }
+    // }
 
     grouping bgp-ping-mesh-state {
       container bgp-ping-mesh {
+        presence "BGP ping mesh agent configuration and state";
         description "Operational state for BGP Ping Mesh agent";
 
-        config false;
+        leaf admin-state {
+          type srl_nokia-comm:admin-state;
+          default "enable";
+          description "Measure rtt and ttl for this BGP transport, for each peer";
+        }
 
         list peer {
+          description "List of keep-alive statistics for BGP peers";
+          config false;
+
           key "ip";
 
           leaf ip {
             type srl_nokia-comm:ip-address;
-            srl_nokia-ext:show-importance "high";
             description "Connection IP for this peer";
           }
 
           leaf last-update {
             type srl_nokia-comm:date-and-time-delta;
-            srl_nokia-ext:show-importance "high";
             description "The date and time of the last update of this entry";
           }
 
-          leaf rtt {
+          leaf last-rtt-in-us {
             type uint64;
             description "Observed RTT in us";
+          }
+          leaf min-rtt-in-us {
+            type uint64;
+            description "Observed minimum RTT in us";
+          }
+          leaf max-rtt-in-us {
+            type uint64;
+            description "Observed maximum RTT in us";
+          }
+          leaf avg-rtt-in-us {
+            type uint64;
+            description "Observed average RTT in us";
           }
 
           leaf hops {
             type uint8;
             description "Observed IP hopcount based on TTL coming from peer";
+          }
+
+          leaf hops-changes {
+            description "Number of times changes in TTL were seen for this peer";
+            type uint64;
+            default 0;
           }
 
           leaf keep-alives {
@@ -80,12 +105,12 @@ module srl-ping-mesh {
       }
     }
 
-    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:group/srl_nokia-bgp:transport" {
-        uses bgp-ping-mesh-flag;
-    }
-    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:neighbor/srl_nokia-bgp:transport" {
-        uses bgp-ping-mesh-flag;
-    }
+    // augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:group/srl_nokia-bgp:transport" {
+    //     uses bgp-ping-mesh-flag;
+    // }
+    // augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:neighbor/srl_nokia-bgp:transport" {
+    //     uses bgp-ping-mesh-flag;
+    // }
 
     uses bgp-ping-mesh-state;
 }
