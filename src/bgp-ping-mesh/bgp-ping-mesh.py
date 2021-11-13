@@ -184,7 +184,9 @@ class BGPMonitoringThread(Thread):
 
     with netns.NetNS(nsname="srbase-default"):
        try:
-          sniff( iface=["gateway"] + self.interfaces, filter="tcp port 179",
+          # Could filter on IP length using ip[2:2] too, eth-14
+          filter = "tcp port 179 and (len==85 or len==66)"
+          sniff( iface=["gateway"] + self.interfaces, filter=filter,
                  prn=check_for_bgp_keepalive, store=False)
        except Exception as e:
           logging.error(e)
