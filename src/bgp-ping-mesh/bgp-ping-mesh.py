@@ -130,45 +130,52 @@ class BGPMonitoringThread(Thread):
       logging.info("Waiting for srbase-default netns to be created...")
       time.sleep(1)
 
-    last_ts = 0
-    last_time = 0
-    keep_alives = 0
+    def get_timestamps(packet):
+       for opt, val in packet[TCP].options:  #  consider all TCP options
+          if opt == 'Timestamp':
+             TSval, TSecr = val  #  decode the value of the option
+             return ( TSval, TSecr )
+       return ( None, None )
 
-    def handle_bgp_keepalive(packet):
-        for opt, val in packet[TCP].options:  #  consider all TCP options
-            if opt == 'Timestamp':
-               TSval, TSecr = val  #  decode the value of the option
-               logging.info(f'TSval={TSval} TSecr={TSecr} len={len(packet)} if={packet.sniffed_on}')
+    state_per_peer = {} # Keyed by IP
 
-               if len(packet) == 85: # PING BGP keep-alive
-                  last_time = packet.time
-                  last_ts = TSval
-               elif len(packet) == 66: # PONG
-                  if last_ts == TSecr:
-                      rtt = int( (packet.time - last_time) * 1e06 )
-                      logging.info( f"Matching TSval; rtt={ rtt } us" )
+    def handle_bgp_keepalive(packet,is_ping):
+        global state_per_peer
 
-                      if packet.sniffed_on != "gateway": # incoming reply packets
-                         keep_alives += 1
-                         ip = packet[IP]
-                         peer = ip.src
-                         now_ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-                         data = {
-                           'last_update': { "value" : now_ts },
-                           'rtt': rtt,
-                           'ttl': ip.ttl,
-                           'keep_alives': keep_alives
-                         }
-                         Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data ) ] )
-                      else:
-                         logging.warning( f"Ignoring reply packet on 'gateway'" )
-                  else:
-                      logging.warning( "TS mismatch" )
+        ip = packet[IP]
+        ts = get_timestamps(packet)
+        peer = ip.dst if is_ping else ip.src
+        logging.info(f'handle_bgp_keepalive is_ping={is_ping} ts={ts} peer={peer} len={len(packet)} if={packet.sniffed_on}')
+        if peer in state_per_peer:
+            s = state_per_peer[ peer ]
+            if is_ping:
+               s.update( { 'time': packet.time, 'ts': ts[0], 'count': s['count']+1 } )
+            elif ts[1]==s['ts']:
+               now_ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+               data = {
+                 'last_update': { "value" : now_ts },
+                 'rtt': int( (packet.time - s['time']) * 1e06 ),
+                 'ttl': ip.ttl,
+                 'keep_alives': s['count']
+               }
+               Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data ) ] )
+            else:
+               logging.warning( f"Ignoring PONG with TS mismatch: {ts} != {s}" )
+        elif is_ping:
+            state_per_peer[ peer ] = { 'time': packet.time, 'ts': ts[0], 'count': 1 }
+        else:
+            logging.warning( f"Ignoring PONG without state for peer={peer}" )
+
+    def check_for_bgp_keepalive(packet):
+        if len(packet) == 85 and packet.sniffed_on == 'gateway': # outgoing PING BGP keep-alive
+            handle_bgp_keepalive(packet,is_ping=True)
+        elif len(packet) == 66 and packet.sniffed_on != 'gateway': # PONG
+            handle_bgp_keepalive(packet,is_ping=False)
 
     with netns.NetNS(nsname="srbase-default"):
        try:
           sniff( iface=["gateway"] + self.interfaces, filter="tcp port 179",
-                 prn=handle_bgp_keepalive, store=False)
+                 prn=check_for_bgp_keepalive, store=False)
        except Exception as e:
           logging.error(e)
 
