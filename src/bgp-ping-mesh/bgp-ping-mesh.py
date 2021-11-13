@@ -138,7 +138,7 @@ class BGPMonitoringThread(Thread):
         for opt, val in packet[TCP].options:  #  consider all TCP options
             if opt == 'Timestamp':
                TSval, TSecr = val  #  decode the value of the option
-               logging.info(f'TSval={TSval} TSecr={TSecr} len={len(packet)}')
+               logging.info(f'TSval={TSval} TSecr={TSecr} len={len(packet)} if={packet.sniffed_on}')
 
                if len(packet) == 85: # PING BGP keep-alive
                   last_time = packet.time
@@ -160,12 +160,17 @@ class BGPMonitoringThread(Thread):
                            'keep_alives': keep_alives
                          }
                          Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data ) ] )
+                      else:
+                         logging.warning( f"Ignoring reply packet on 'gateway'" )
                   else:
                       logging.warning( "TS mismatch" )
 
     with netns.NetNS(nsname="srbase-default"):
-       sniff( iface=["gateway"] + self.interfaces, filter="tcp port 179",
-              prn=handle_bgp_keepalive, store=False)
+       try:
+          sniff( iface=["gateway"] + self.interfaces, filter="tcp port 179",
+                 prn=handle_bgp_keepalive, store=False)
+       except Exception as e:
+          logging.error(e)
 
 ##################################################################
 ## Proc to process the config Notifications received by auto_config_agent
@@ -222,7 +227,9 @@ def Run():
         for obj in r.notification:
             if obj.HasField('config') and obj.config.key.js_path == ".commit.end":
                 # TODO if enabled...
-                BGPMonitoringThread(interfaces=["e1-1.0","e1-2.0"]).start()
+                if not hasattr(state,'bgpthread'):
+                   state.bgpthread = BGPMonitoringThread(interfaces=["e1-1.0","e1-2.0"])
+                   state.bgpthread.start()
             else:
                 Handle_Notification(obj, state)
                 logging.info(f'Updated state: {state}')
