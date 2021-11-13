@@ -116,6 +116,7 @@ class BGPMonitoringThread(Thread):
    def __init__(self,interfaces):
       Thread.__init__(self)
       self.interfaces = interfaces
+      self.state_per_peer = {} # Keyed by IP
 
    def run(self):
     """
@@ -130,39 +131,35 @@ class BGPMonitoringThread(Thread):
       logging.info("Waiting for srbase-default netns to be created...")
       time.sleep(1)
 
-    def get_timestamps(packet):
-       for opt, val in packet[TCP].options:  #  consider all TCP options
-          if opt == 'Timestamp':
-             TSval, TSecr = val  #  decode the value of the option
-             return ( TSval, TSecr )
-       return ( None, None )
-
-    state_per_peer = {} # Keyed by IP
-
     def handle_bgp_keepalive(packet,is_ping):
-        global state_per_peer
-
+        # Format: (TSVal, TSEcr)
+        ts = [ val for opt,val in packet[TCP].options if opt=='Timestamp' ]
+        if ts==[]:
+            logging.warning( "No TCP timestamp option found in packet" )
+            return
+        else:
+           tsval,tsecr = ts[0]
         ip = packet[IP]
-        ts = get_timestamps(packet)
         peer = ip.dst if is_ping else ip.src
         logging.info(f'handle_bgp_keepalive is_ping={is_ping} ts={ts} peer={peer} len={len(packet)} if={packet.sniffed_on}')
-        if peer in state_per_peer:
-            s = state_per_peer[ peer ]
+        if peer in self.state_per_peer:
+            s = self.state_per_peer[ peer ]
             if is_ping:
-               s.update( { 'time': packet.time, 'ts': ts[0], 'count': s['count']+1 } )
-            elif ts[1]==s['ts']:
+               s.update( { 'time': packet.time, 'ts': tsval, 'count': s['count']+1 } )
+            elif tsecr==s['ts']:
+               s['ts'] = 0 # Update to match only once
                now_ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                data = {
                  'last_update': { "value" : now_ts },
                  'rtt': int( (packet.time - s['time']) * 1e06 ),
-                 'ttl': ip.ttl,
+                 'hops': 64 - ip.ttl,
                  'keep_alives': s['count']
                }
-               Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data ) ] )
+               Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data )] )
             else:
                logging.warning( f"Ignoring PONG with TS mismatch: {ts} != {s}" )
         elif is_ping:
-            state_per_peer[ peer ] = { 'time': packet.time, 'ts': ts[0], 'count': 1 }
+            self.state_per_peer[ peer ] = { 'time': packet.time, 'ts': tsval, 'count': 1 }
         else:
             logging.warning( f"Ignoring PONG without state for peer={peer}" )
 

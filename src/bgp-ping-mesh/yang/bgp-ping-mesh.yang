@@ -67,9 +67,9 @@ module srl-ping-mesh {
             description "Observed RTT in us";
           }
 
-          leaf ttl {
+          leaf hops {
             type uint8;
-            description "Observed IP TTL hopcount coming from peer";
+            description "Observed IP hopcount based on TTL coming from peer";
           }
 
           leaf keep-alives {
