@@ -1,4 +1,4 @@
-# srl-ping-mesh
+# bgp-ping-mesh
 An agent that measures and reports BGP peering keep-alive RTT/TTL metrics based on observed keep-alive packets.
 
 # BGP keep-alive
