@@ -1,6 +1,7 @@
 # See example_config.yml for an explanation of all the accepted fields
 bgp_ping_mesh:
    path: /opt/bgp-ping-mesh
+   # Listening on interfaces in srbase requires root privileges
    launch-command: sudo /opt/bgp-ping-mesh/scripts/bgp-ping-mesh.sh
    search-command: python3 /opt/bgp-ping-mesh/bgp-ping-mesh.py
    wait-for-config: Yes

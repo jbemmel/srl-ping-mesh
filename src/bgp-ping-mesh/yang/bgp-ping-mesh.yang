@@ -45,7 +45,6 @@ module srl-ping-mesh {
       container bgp-ping-mesh {
         description "Operational state for BGP Ping Mesh agent";
 
-        presence "BGP ping mesh state";
         config false;
 
         list peer {

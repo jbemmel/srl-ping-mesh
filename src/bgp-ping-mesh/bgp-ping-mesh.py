@@ -43,7 +43,7 @@ import signal
 ############################################################
 ## Agent will start with this name
 ############################################################
-agent_name='bgp_ping_mesh_agent'
+agent_name='bgp_ping_mesh'
 
 ############################################################
 ## Open a GRPC channel to connect to sdk_mgr on the dut
@@ -111,6 +111,62 @@ def Remove_Telemetry(js_paths):
     telemetry_response = telemetry_stub.TelemetryDelete(request=telemetry_del_request, metadata=metadata)
     return telemetry_response
 
+from threading import Thread
+class BGPMonitoringThread(Thread):
+   def __init__(self,interfaces):
+      Thread.__init__(self)
+      self.interfaces = interfaces
+
+   def run(self):
+    """
+    Hardcoded interfaces for now...
+    Outgoing packets are routed via 'gateway' device
+    Incoming comes in in srbase-default under e1-1.0, e1-2.0, etc.
+    """
+    from scapy.all import sniff
+    from scapy.layers.inet import IP, TCP
+
+    while not os.path.exists('/var/run/netns/srbase-default'):
+      logging.info("Waiting for srbase-default netns to be created...")
+      time.sleep(1)
+
+    last_ts = 0
+    last_time = 0
+    keep_alives = 0
+
+    def handle_bgp_keepalive(packet):
+        for opt, val in packet[TCP].options:  #  consider all TCP options
+            if opt == 'Timestamp':
+               TSval, TSecr = val  #  decode the value of the option
+               logging.info(f'TSval={TSval} TSecr={TSecr} len={len(packet)}')
+
+               if len(packet) == 85: # PING BGP keep-alive
+                  last_time = packet.time
+                  last_ts = TSval
+               elif len(packet) == 66: # PONG
+                  if last_ts == TSecr:
+                      rtt = int( (packet.time - last_time) * 1e06 )
+                      logging.info( f"Matching TSval; rtt={ rtt } us" )
+
+                      if packet.sniffed_on != "gateway": # incoming reply packets
+                         keep_alives += 1
+                         ip = packet[IP]
+                         peer = ip.src
+                         now_ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                         data = {
+                           'last_update': { "value" : now_ts },
+                           'rtt': rtt,
+                           'ttl': ip.ttl,
+                           'keep_alives': keep_alives
+                         }
+                         Add_Telemetry( [(f'.bgp_ping_mesh.peer{{.ip=="{peer}"}}', data ) ] )
+                  else:
+                      logging.warning( "TS mismatch" )
+
+    with netns.NetNS(nsname="srbase-default"):
+       sniff( iface=["gateway"] + self.interfaces, filter="tcp port 179",
+              prn=handle_bgp_keepalive, store=False)
+
 ##################################################################
 ## Proc to process the config Notifications received by auto_config_agent
 ## At present processing config from js_path containing agent_name
@@ -161,11 +217,12 @@ def Run():
       count = 1
 
       for r in stream_response:
-        logging.info(f"Count :: {count}  NOTIFICATION:: \n{r.notification}")
+        logging.info(f"Count :: {count} NOTIFICATION:: \n{r.notification}")
         count += 1
         for obj in r.notification:
             if obj.HasField('config') and obj.config.key.js_path == ".commit.end":
-                logging.info('TO DO -commit.end config')
+                # TODO if enabled...
+                BGPMonitoringThread(interfaces=["e1-1.0","e1-2.0"]).start()
             else:
                 Handle_Notification(obj, state)
                 logging.info(f'Updated state: {state}')

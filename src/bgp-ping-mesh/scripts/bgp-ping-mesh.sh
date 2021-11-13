@@ -16,7 +16,8 @@ _term (){
 function main()
 {
     trap _term SIGTERM
-    local virtual_env="/opt/srlinux/python/virtual-env/bin/activate"
+    local virtual_env="/opt/bgp-ping-mesh/.venv/bin/activate"
+    # local virtual_env="/opt/srlinux/python/virtual-env/bin/activate"
     local main_module="/opt/bgp-ping-mesh/bgp-ping-mesh.py"
 
     # source the virtual-environment, which is used to ensure the correct python packages are installed,
@@ -24,13 +25,14 @@ function main()
     source "${virtual_env}"
 
     # Include local paths where custom packages are installed
-    P1="/usr/local/lib/python3.6/site-packages"
-    P2="/usr/local/lib64/python3.6/site-packages"
-    P3="/usr/lib/python3.6/site-packages"
-    P4="/usr/lib64/python3.6/site-packages"
+    # P1="/usr/local/lib/python3.6/site-packages"
+    # P2="/usr/local/lib64/python3.6/site-packages"
+    # P3="/usr/lib/python3.6/site-packages"
+    # P4="/usr/lib64/python3.6/site-packages"
     # since 21.6
     SDKPATH="/usr/lib/python3.6/site-packages/sdk_protos"
-    export PYTHONPATH="$SDKPATH:$P1:$P2:$P3:$P4:$PYTHONPATH"
+    # VENVPATH="/opt/bgp-ping-mesh/.venv/lib/python3.6/site-packages"
+    export PYTHONPATH="$SDKPATH:$PYTHONPATH"
 
     # Opening srbase-default namespace requires root
     python3 ${main_module} &
