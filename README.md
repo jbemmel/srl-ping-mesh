@@ -33,4 +33,10 @@ tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot leng
 A simple tcpdump illustrates what we can leverage - note the TCP timestamp option, the ttl field
 
 ## Python scapy
-The Python [scapy](https://scapy.net/) library is a small packet processing tool to capture packets based on bpf filters (for example: BGP keep-alive packets).
+The Python [scapy](https://scapy.net/) library is a small packet processing tool to capture packets based on bpf filters.
+In order to capture BGP keep-alive packets, we can use 'sniff':
+```
+from scapy.all import sniff
+sniff(iface=["gateway","e1-1.0","e1-2.0"], filter="tcp port 179", prn=handle_bgp_keepalive, store=False)
+```
+Additional filtering options (like specific packet sizes) could be added, but basically this is all it takes to collect data to calculate and report rtt latencies
