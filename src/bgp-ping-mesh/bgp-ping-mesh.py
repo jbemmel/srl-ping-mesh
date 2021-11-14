@@ -119,8 +119,14 @@ def ListInterfaces(network_instance):
         path = f"/network-instance[name={network_instance}]/interface"
         data = c.get(path=[path],encoding='json_ietf')
         logging.info( f"ListInterfaces: {data}" )
+        res = data['notification'][0]['update'][0]['val']
 
-    return [ "e1-1.0", "e1-2.0" ] # Hardcoded until fixed
+        def shorten(i):
+            return i.replace("ethernet-","e").replace('/','-')
+
+        return [ shorten( intf['name'] ) for intf in res['interface'] ]
+
+    # return [ "e1-1.0", "e1-2.0" ] # Hardcoded until fixed
 
 from threading import Thread
 class BGPMonitoringThread(Thread):

@@ -10,9 +10,10 @@ module srl-ping-mesh {
         prefix srl_nokia-comm;
     }
 
-    // import srl_nokia-network-instance {
-    //     prefix srl_nokia-netinst;
-    // }
+    import srl_nokia-network-instance {
+        prefix srl-netinst;
+    }
+
     // import srl_nokia-bgp-evpn {
     //     prefix srl_nokia-bgp-evpn;
     // }
