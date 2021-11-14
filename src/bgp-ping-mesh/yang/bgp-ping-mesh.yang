@@ -53,6 +53,17 @@ module srl-ping-mesh {
           description "Measure rtt and ttl for this BGP transport, for each peer";
         }
 
+        leaf network-instance {
+         description "Name of network-instance in which to listen for BGP keep-alives; defaults to the 'default' instance";
+         type leafref {
+          path "/srl-netinst:network-instance/srl-netinst:name";
+         }
+         must '(/srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:ip-vrf" or
+                /srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:default" )' {
+            error-message "Only network-instances of type ip-vrf or default are allowed.";
+         }
+        }
+
         list peer {
           description "List of keep-alive statistics for BGP peers";
           config false;

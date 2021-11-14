@@ -33,9 +33,6 @@ import telemetry_service_pb2_grpc
 
 from logging.handlers import RotatingFileHandler
 
-#
-# BGP imports
-#
 import netns
 import signal
 
@@ -111,11 +108,26 @@ def Remove_Telemetry(js_paths):
     telemetry_response = telemetry_stub.TelemetryDelete(request=telemetry_del_request, metadata=metadata)
     return telemetry_response
 
+def ListInterfaces(network_instance):
+    """
+    Uses a local gNMI connection to list interfaces in the given network instance.
+    Requires Unix socket to be enabled for gNMI
+    """
+    with gNMIclient(target=('unix:///opt/srlinux/var/run/sr_gnmi_server',57400),
+                    username="admin",password="admin",
+                    insecure=True, debug=False) as c:
+        path = f"/network-instance[name={network_instance}]/interface"
+        data = c.get(path=[path],encoding='json_ietf')
+        logging.info( f"ListInterfaces: {data}" )
+
+    return [ "e1-1.0", "e1-2.0" ] # Hardcoded until fixed
+
 from threading import Thread
 class BGPMonitoringThread(Thread):
-   def __init__(self,interfaces):
+   def __init__(self,network_instance):
       Thread.__init__(self)
-      self.interfaces = interfaces
+      self.network_instance = network_instance
+      self.stop = False
       self.state_per_peer = {} # Keyed by IP
 
    def run(self):
@@ -124,14 +136,17 @@ class BGPMonitoringThread(Thread):
     Outgoing packets are routed via 'gateway' device
     Incoming comes in in srbase-default under e1-1.0, e1-2.0, etc.
     """
-    from scapy.all import sniff
-    from scapy.layers.inet import IP, TCP
 
-    while not os.path.exists('/var/run/netns/srbase-default'):
-      logging.info("Waiting for srbase-default netns to be created...")
+    netinst = f"srbase-{self.network_instance}"
+    while not os.path.exists(f'/var/run/netns/{netinst}'):
+      logging.info(f"Waiting for {netinst} netns to be created...")
       time.sleep(1)
 
+    interfaces = ["gateway"] + ListInterfaces( self.network_instance )
+
     def handle_bgp_keepalive(packet,is_ping):
+        from scapy.layers.inet import IP, TCP
+
         # Format: (TSVal, TSEcr)
         ts = [ val for opt,val in packet[TCP].options if opt=='Timestamp' ]
         if ts==[]:
@@ -182,12 +197,16 @@ class BGPMonitoringThread(Thread):
         elif len(packet) == 66 and packet.sniffed_on != 'gateway': # PONG
             handle_bgp_keepalive(packet,is_ping=False)
 
-    with netns.NetNS(nsname="srbase-default"):
+    def stop_filter(packet):
+        return self.stop # Stop sniffing when flag is set
+
+    from scapy.all import sniff
+    with netns.NetNS(nsname=netinst):
        try:
-          # Could filter on IP length using ip[2:2] too, eth-14
+          # Could filter on IP length using ip[2:2] too, minus 14 bytes eth
           filter = "tcp port 179 and (len==85 or len==66)"
-          sniff( iface=["gateway"] + self.interfaces, filter=filter,
-                 prn=check_for_bgp_keepalive, store=False)
+          sniff( iface=interfaces, filter=filter, stop_filter=stop_filter,
+                 prn=check_for_bgp_keepalive, store=False )
        except Exception as e:
           logging.error(e)
 
@@ -201,6 +220,11 @@ def Handle_Notification(obj, state):
 
         json_str = obj.config.data.json.replace("'", "\"")
         data = json.loads(json_str) if json_str != "" else {}
+
+        if 'admin_state' in data:
+            state.admin_state = data['admin_state'][12:] # strip "ADMIN_STATE_"
+        if 'network_instance' in data:
+            state.network_instance = data['network_instance']['value']
     else:
         logging.info(f"Unexpected notification : {obj}")
 
@@ -208,7 +232,8 @@ def Handle_Notification(obj, state):
 
 class State(object):
     def __init__(self):
-        self.params = {}  # Set through config
+        self.network_instance = 'default'  # Set through config
+        self.admin_state = 'enable'
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -247,8 +272,13 @@ def Run():
             if obj.HasField('config') and obj.config.key.js_path == ".commit.end":
                 # TODO if enabled...
                 if not hasattr(state,'bgpthread'):
-                   state.bgpthread = BGPMonitoringThread(interfaces=["e1-1.0","e1-2.0"])
-                   state.bgpthread.start()
+                   if state.admin_state == "enable":
+                      state.bgpthread = BGPMonitoringThread(state.network_instance)
+                      state.bgpthread.start()
+                elif state.admin_state == "disable":
+                   logging.info( "Stopping BGP keep-alive sniff thread after next packet..." )
+                   state.bgpthread.stop = True
+                   del state.bgpthread
             else:
                 Handle_Notification(obj, state)
                 logging.info(f'Updated state: {state}')
