@@ -10,10 +10,14 @@ ifndef SR_LINUX_RELEASE
 override SR_LINUX_RELEASE="latest"
 endif
 
+container-image: BASE_IMAGE = srl/custombase
+container-image: build
+
 build:
 	sudo docker build --build-arg SRL_BGP_PING_MESH_RELEASE=${TAG} \
 	                  --build-arg http_proxy=${HTTP_PROXY} \
 										--build-arg https_proxy=${HTTP_PROXY} \
+										--build-arg BASE_IMAGE=${BASE_IMAGE} \
 	                  --build-arg SR_LINUX_RELEASE="${SR_LINUX_RELEASE}" \
 	                  -f ./Dockerfile -t ${IMG} .
 	sudo docker tag ${IMG} ${LATEST}
@@ -26,12 +30,14 @@ all: build-submodules build
 CREATE_CONTAINER := $(shell docker create ${LATEST})
 SET_CONTAINER_ID = $(eval CONTAINER_ID=$(CREATE_CONTAINER))
 
+rpm: BASE_IMAGE = ghcr.io/nokia/srlinux
 rpm: build
 	mkdir -p rpmbuild
 	$(SET_CONTAINER_ID)
 	docker cp --follow-link ${CONTAINER_ID}:/opt/bgp-ping-mesh/ rpmbuild/
 	docker rm ${CONTAINER_ID}
-	find rpmbuild/ -xtype l -delete # Purge broken symlinks
+	find rpmbuild/ -type l -delete # Purge symlinks, including broken ones
+	awk '/version/{print $$2}' fpmConfig.yml > rpmbuild/bgp-ping-mesh/agent_version
 	docker run --rm -v ${PWD}:/tmp -w /tmp goreleaser/nfpm package \
     --config /tmp/fpmConfig.yml \
     --target /tmp \

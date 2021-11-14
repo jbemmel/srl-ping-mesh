@@ -1,6 +1,6 @@
-name: "bgp-ping-mesh"   # name of the rpm package
+name: "bgp-ping-mesh" # name of the rpm package
 arch: "amd64"         # architecture you are using
-version: "v1.0.0"     # version of this rpm package
+version: v1.0.0       # version of this rpm package
 maintainer: "Jeroen van Bemmel <jeroen.van_bemmel@nokia.com"
 description: Agent to report on rtt/ttl towards BGP peers based on keep-alives
 vendor: "Nokia"     # optional information about the creator of the package

@@ -3,20 +3,13 @@
 
 import grpc
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 import time
 import sys
 import logging
-import socket
 import os
-import re
-import struct
-import ipaddress
 import json
 import traceback
-import subprocess
-from threading import Timer
-import pwd
 
 # sys.path.append('/usr/lib/python3.6/site-packages/sdk_protos')
 import sdk_service_pb2
@@ -25,7 +18,7 @@ import config_service_pb2
 import sdk_common_pb2
 
 # Local gNMI connection
-from pygnmi.client import gNMIclient, telemetryParser
+from pygnmi.client import gNMIclient
 
 # To report state back
 import telemetry_service_pb2
