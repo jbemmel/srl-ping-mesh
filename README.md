@@ -39,4 +39,5 @@ In order to capture BGP keep-alive packets, we can use 'sniff':
 from scapy.all import sniff
 sniff(iface=["gateway","e1-1.0","e1-2.0"], filter="tcp port 179", prn=handle_bgp_keepalive, store=False)
 ```
-Additional filtering options (like specific packet sizes) could be added, but basically this is all it takes to collect data to calculate and report rtt latencies
+Additional filtering options (like specific packet sizes) could be added, but basically this is all it takes to collect data to calculate and report rtt latencies.
+Note that the prototype uses the latest version from Github (due to some issue with specifying multiple interfaces for 'sniff', fixed but not yet included in the latest release)
