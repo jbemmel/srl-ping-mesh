@@ -1,4 +1,7 @@
 {
+  "srl-ping-mesh:bgp-ping-mesh": {
+    "admin-state": "enable"
+  },
   "srl_nokia-acl:acl": {
     "cpm-filter": {
       "ipv4-filter": {
