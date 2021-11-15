@@ -9,11 +9,12 @@ module srl-ping-mesh {
     import srl_nokia-common {
         prefix srl_nokia-comm;
     }
-
     import srl_nokia-network-instance {
         prefix srl-netinst;
     }
-
+    import srl_nokia-bgp {
+        prefix srl_nokia-bgp;
+    }
     // import srl_nokia-bgp-evpn {
     //     prefix srl_nokia-bgp-evpn;
     // }
@@ -22,9 +23,6 @@ module srl-ping-mesh {
     // }
     // import srl_nokia-if-ip {
     //     prefix srl_nokia-if-ip;
-    // }
-    // import srl_nokia-bgp {
-    //     prefix srl_nokia-bgp;
     // }
     // import srl_nokia-extensions {
     //     prefix srl_nokia-ext;
@@ -62,6 +60,9 @@ module srl-ping-mesh {
          must '(/srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:ip-vrf" or
                 /srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:default" )' {
             error-message "Only network-instances of type ip-vrf or default are allowed.";
+         }
+         must '(/srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:protocols/srl_nokia-bgp:bgp)' {
+            error-message "BGP must be enabled in the target network instance";
          }
         }
 
