@@ -1,5 +1,5 @@
-ARG BASE_IMAGE
-ARG SR_LINUX_RELEASE
+ARG BASE_IMAGE=ghcr.io/nokia/srlinux
+ARG SR_LINUX_RELEASE=latest
 FROM $BASE_IMAGE:$SR_LINUX_RELEASE AS target-image
 
 # Disable generation of Python bytecode to minimize size of .rpm

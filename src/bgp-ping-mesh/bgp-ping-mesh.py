@@ -17,9 +17,6 @@ import sdk_service_pb2_grpc
 import config_service_pb2
 import sdk_common_pb2
 
-# Local gNMI connection
-from pygnmi.client import gNMIclient
-
 # To report state back
 import telemetry_service_pb2
 import telemetry_service_pb2_grpc
@@ -28,7 +25,6 @@ from logging.handlers import RotatingFileHandler
 
 import netns
 import signal
-
 
 ############################################################
 ## Agent will start with this name
@@ -105,7 +101,14 @@ def ListInterfaces(network_instance):
     """
     Uses a local gNMI connection to list interfaces in the given network instance.
     Requires Unix socket to be enabled for gNMI
+    Note the hardcoded admin/admin credentials
+
+    For production deployment, it may be better to list interfaces explicitly
+    in the Yang model config, such that this gNMI connection (and user/password)
+    are not necessary
     """
+    from pygnmi.client import gNMIclient
+
     with gNMIclient(target=('unix:///opt/srlinux/var/run/sr_gnmi_server',57400),
                     username="admin",password="admin",
                     insecure=True, debug=False) as c:
@@ -131,7 +134,6 @@ class BGPMonitoringThread(Thread):
 
    def run(self):
     """
-    Hardcoded interfaces for now...
     Outgoing packets are routed via 'gateway' device
     Incoming comes in in srbase-default under e1-1.0, e1-2.0, etc.
     """
