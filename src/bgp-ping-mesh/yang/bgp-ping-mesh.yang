@@ -57,11 +57,11 @@ module srl-ping-mesh {
          type leafref {
           path "/srl-netinst:network-instance/srl-netinst:name";
          }
-         must '(/srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:ip-vrf" or
-                /srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:type = "srl-netinst:default" )' {
+         must '(/srl-netinst:network-instance[name = current()]/type = "ip-vrf" or
+                /srl-netinst:network-instance[name = current()]/type = "default" )' {
             error-message "Only network-instances of type ip-vrf or default are allowed.";
          }
-         must '(/srl-netinst:network-instance[srl-netinst:name = current()]/srl-netinst:protocols/srl_nokia-bgp:bgp)' {
+         must '(/srl-netinst:network-instance[name = current()]/protocols/srl_nokia-bgp:bgp)' {
             error-message "BGP must be enabled in the target network instance";
          }
         }
