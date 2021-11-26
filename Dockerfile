@@ -24,7 +24,7 @@ RUN sudo python3 -m venv $VENV && source $VENV/bin/activate && python3 -m pip in
 
 # copy wheels from builder and install them
 COPY --from=builder /tmp/wheels /tmp/wheels
-RUN source $VENV/bin/activate && python3 -m pip install --no-cache --no-index /tmp/wheels/* && sudo rm -rf /tmp/wheels
+RUN source $VENV/bin/activate && python3 -m pip install --no-cache --no-index /tmp/wheels/*
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/
 COPY --chown=srlinux:srlinux ./bgp-ping-mesh.yml /etc/opt/srlinux/appmgr
