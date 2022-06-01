@@ -15,7 +15,7 @@ RUN sudo VIRTUAL_ENV=/opt/bgp-ping-mesh/.venv PATH="/opt/bgp-ping-mesh/.venv/bin
     python3 -m pip install netns
 
 # Need latest version to fix some scapy bugs
-FROM centos:8 AS latest-scapy
+FROM quay.io/centos/centos:stream8 AS latest-scapy
 RUN yum install -y python3 git && cd /tmp && \
     git clone https://github.com/secdev/scapy && \
     cd scapy && \
