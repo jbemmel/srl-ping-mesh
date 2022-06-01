@@ -12,6 +12,8 @@ By default, BGP peers exchange keep-alive packets every 30s to ensure the peer r
 
 The resulting telemetry can be subscribed to, reported on a dashboard, etc.
 
+![srl_bgp_ping_mesh](https://user-images.githubusercontent.com/2031627/171506992-ec0c1c6b-2a94-47dc-bcbf-9704d6b84f8b.PNG)
+
 ```
 [linuxadmin@srl1 ~]$ ip netns exec srbase-default tcpdump -i any -nnve tcp port 179 -c 4
 tcpdump: data link type LINUX_SLL2
