@@ -25,7 +25,7 @@ RUN yum install -y python3 git && cd /tmp && \
 RUN yum install -y gcc-c++ && python3 -m pip install pip --upgrade && python3 -m pip install pygnmi
 
 FROM target-image AS final
-COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/scapy* $VIRTUAL_ENV/lib/python3.6/site-packages/
+COPY --from=latest-scapy /tmp/scapy*  $VIRTUAL_ENV/lib/python3.6/site-packages/
 COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/pygnmi $VIRTUAL_ENV/lib/python3.6/site-packages/
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/

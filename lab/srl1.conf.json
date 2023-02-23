@@ -12,7 +12,6 @@
             "description": "Accept incoming ICMP unreachable messages",
             "action": {
               "accept": {
-
               }
             },
             "match": {
@@ -1539,9 +1538,7 @@
       {
         "name": "accept-all",
         "default-action": {
-          "accept": {
-
-          }
+          "policy-result": "accept"
         }
       }
     ]
