@@ -14,6 +14,7 @@ container-image: BASE_IMAGE = srl/custombase
 container-image: build
 
 build:
+	echo ${TAG} > src/bgp-ping-mesh/agent_version
 	sudo docker build --build-arg SRL_BGP_PING_MESH_RELEASE=${TAG} \
 	                  --build-arg http_proxy=${HTTP_PROXY} \
 										--build-arg https_proxy=${HTTP_PROXY} \
