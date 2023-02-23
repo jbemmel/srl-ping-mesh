@@ -43,3 +43,8 @@ sniff(iface=["gateway","e1-1.0","e1-2.0"], filter="tcp port 179", prn=handle_bgp
 ```
 Additional filtering options (like specific packet sizes) could be added, but basically this is all it takes to collect data to calculate and report rtt latencies.
 Note that the prototype uses the latest version from Github (due to some issue with specifying multiple interfaces for 'sniff', fixed but not yet included in the latest release)
+
+## eBPF filter
+Under the hood, this prototype uses [eBPF](https://github.com/jbemmel/srl-ping-mesh/blob/main/src/bgp-ping-mesh/bgp-keepalive-filter.c) to forward BGP packets received by the CPM to a custom Python application for analysis. Note that this works because BGP packets go to the CPU, it would not work for general packets.
+
+The demo uses hardcoded interfaces ethernet-1/1 and ethernet-1/2 only, this could be generalized
