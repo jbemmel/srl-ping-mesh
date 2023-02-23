@@ -101,7 +101,7 @@ def ListInterfaces(network_instance):
     """
     Uses a local gNMI connection to list interfaces in the given network instance.
     Requires Unix socket to be enabled for gNMI
-    Note the hardcoded admin/admin credentials
+    Note the hardcoded admin/admin credentials (not checked by current config)
 
     For production deployment, it may be better to list interfaces explicitly
     in the Yang model config, such that this gNMI connection (and user/password)
@@ -208,6 +208,7 @@ class BGPMonitoringThread(Thread):
           filter = "tcp port 179 and (len==85 or len==66)"
           sniff( iface=interfaces, filter=filter, stop_filter=stop_filter,
                  prn=check_for_bgp_keepalive, store=False )
+          logging.info( f"BGPMonitoringThread: sniff process in '{netinst}' exiting" )
        except Exception as e:
           logging.error(e)
 
