@@ -48,3 +48,15 @@ Note that the prototype uses the latest version from Github (due to some issue w
 Under the hood, this prototype uses [eBPF](https://github.com/jbemmel/srl-ping-mesh/blob/main/src/bgp-ping-mesh/bgp-keepalive-filter.c) to forward BGP packets received by the CPM to a custom Python application for analysis. Note that this works because BGP packets go to the CPU, it would not work for general packets.
 
 The demo only lists active interfaces in one configured network-instance ('default' if not specified), this could easily be generalized
+
+## Build instructions
+Build agent:
+```
+make
+```
+
+Build RPM package:
+```
+make rpm
+```
+This produces /tmp/bgp-ping-mesh-1.0.0.x86_64.rpm
