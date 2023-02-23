@@ -47,4 +47,4 @@ Note that the prototype uses the latest version from Github (due to some issue w
 ## eBPF filter
 Under the hood, this prototype uses [eBPF](https://github.com/jbemmel/srl-ping-mesh/blob/main/src/bgp-ping-mesh/bgp-keepalive-filter.c) to forward BGP packets received by the CPM to a custom Python application for analysis. Note that this works because BGP packets go to the CPU, it would not work for general packets.
 
-The demo uses hardcoded interfaces ethernet-1/1 and ethernet-1/2 only, this could be generalized
+The demo only lists active interfaces in the 'default' network-instance, this could be generalized
