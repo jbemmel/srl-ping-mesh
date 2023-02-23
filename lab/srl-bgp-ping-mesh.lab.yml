@@ -1,3 +1,11 @@
+#
+# This lab consists of 3 SR Linux nodes connected in a full mesh, using OSPF
+# and a BGP peering between srl1 and srl2
+#
+# When the direct link between them is disabled, the change in hopcount for the
+# BGP session is visible: info from state /bgp-ping-mesh
+#
+
 name: bgp-ping-mesh
 
 topology:
@@ -19,7 +27,12 @@ topology:
       kind: srl
       startup-config: srl2.conf.json
 
+    srl3:
+      kind: srl
+      startup-config: srl3.conf.json
+
   links:
-    # BGP connection between SRL nodes, 2 uplinks
+    # Full mesh triangle
     - endpoints: ["srl1:e1-1", "srl2:e1-1"]
-    - endpoints: ["srl1:e1-2", "srl2:e1-2"]
+    - endpoints: ["srl1:e1-2", "srl3:e1-1"]
+    - endpoints: ["srl2:e1-2", "srl3:e1-2"]

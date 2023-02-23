@@ -1174,19 +1174,19 @@
         {
           "index": 0,
           "type": "srl_nokia-interfaces:routed",
-          "description": "Basic L3 underlay connection to srl1",
+          "description": "Basic L3 underlay connection to srl3",
           "admin-state": "enable",
           "ipv4": {
             "address": [
               {
-                "ip-prefix": "192.168.0.3/31"
+                "ip-prefix": "192.168.0.4/31"
               }
             ]
           },
           "ipv6": {
             "address": [
               {
-                "ip-prefix": "2001::192:168:0:3/127"
+                "ip-prefix": "2001::192:168:0:4/127"
               }
             ]
           }
@@ -1438,6 +1438,7 @@
       "name": "default",
       "type": "srl_nokia-network-instance:default",
       "admin-state": "enable",
+      "router-id": "1.1.1.2",
       "interface": [
         {
           "name": "ethernet-1/1.0"
@@ -1450,6 +1451,38 @@
         }
       ],
       "protocols": {
+        "srl_nokia-ospf:ospf": {
+          "instance": [
+            {
+              "name": "0",
+              "admin-state": "enable",
+              "version": "srl_nokia-ospf-types:ospf-v2",
+              "export-policy": "accept-all",
+              "area": [
+                {
+                  "area-id": "0.0.0.0",
+                  "interface": [
+                    {
+                      "interface-name": "ethernet-1/1.0",
+                      "admin-state": "enable",
+                      "interface-type": "point-to-point"
+                    },
+                    {
+                      "interface-name": "ethernet-1/2.0",
+                      "admin-state": "enable",
+                      "interface-type": "point-to-point"
+                    },
+                    {
+                      "interface-name": "lo0.0",
+                      "admin-state": "enable",
+                      "passive": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         "srl_nokia-bgp:bgp": {
           "admin-state": "enable",
           "autonomous-system": 65000,
@@ -1482,34 +1515,6 @@
             }
           ]
         }
-      },
-      "srl_nokia-static-routes:static-routes": {
-        "route": [
-          {
-            "prefix": "1.1.1.1/32",
-            "admin-state": "enable",
-            "next-hop-group": "srl1"
-          }
-        ]
-      },
-      "srl_nokia-next-hop-groups:next-hop-groups": {
-        "group": [
-          {
-            "name": "srl1",
-            "nexthop": [
-              {
-                "index": 0,
-                "ip-address": "192.168.0.0",
-                "admin-state": "enable"
-              },
-              {
-                "index": 1,
-                "ip-address": "192.168.0.2",
-                "admin-state": "enable"
-              }
-            ]
-          }
-        ]
       }
     },
     {
