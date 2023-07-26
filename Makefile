@@ -10,7 +10,8 @@ ifndef SR_LINUX_RELEASE
 override SR_LINUX_RELEASE="latest"
 endif
 
-container-image: BASE_IMAGE = srl/custombase
+BASE_IMAGE ?= ghcr.io/nokia/srlinux
+# container-image: BASE_IMAGE = srl/custombase
 container-image: build
 
 build:
