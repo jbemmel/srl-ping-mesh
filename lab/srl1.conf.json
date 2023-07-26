@@ -1152,6 +1152,7 @@
           "description": "Basic L3 underlay connection to srl2",
           "admin-state": "enable",
           "ipv4": {
+            "admin-state": "enable",
             "address": [
               {
                 "ip-prefix": "192.168.0.0/31"
@@ -1159,6 +1160,7 @@
             ]
           },
           "ipv6": {
+            "admin-state": "enable",
             "address": [
               {
                 "ip-prefix": "2001::192:168:0:0/127"
@@ -1179,6 +1181,7 @@
           "description": "Basic L3 underlay connection to srl3",
           "admin-state": "enable",
           "ipv4": {
+            "admin-state": "enable",
             "address": [
               {
                 "ip-prefix": "192.168.0.2/31"
@@ -1186,6 +1189,7 @@
             ]
           },
           "ipv6": {
+            "admin-state": "enable",
             "address": [
               {
                 "ip-prefix": "2001::192:168:0:2/127"
@@ -1204,6 +1208,7 @@
           "index": 0,
           "admin-state": "enable",
           "ipv4": {
+            "admin-state": "enable",
             "address": [
               {
                 "ip-prefix": "1.1.1.1/32"
@@ -1487,6 +1492,12 @@
         },
         "srl_nokia-bgp:bgp": {
           "admin-state": "enable",
+          "afi-safi": [
+            {
+              "afi-safi-name": "ipv4-unicast",
+              "admin-state": "enable"
+            }
+          ],
           "autonomous-system": 65000,
           "export-policy": "accept-all",
           "router-id": "1.1.1.1",
@@ -1495,15 +1506,20 @@
               "group-name": "leaves",
               "admin-state": "enable",
               "peer-as": 65000,
-              "ipv4-unicast": {
-                "admin-state": "enable"
-              },
-              "ipv6-unicast": {
-                "admin-state": "disable"
-              },
-              "evpn": {
-                "admin-state": "enable"
-              }
+              "afi-safi": [
+                {
+                  "afi-safi-name": "evpn",
+                  "admin-state": "enable"
+                },
+                {
+                  "afi-safi-name": "ipv4-unicast",
+                  "admin-state": "enable"
+                },
+                {
+                  "afi-safi-name": "ipv6-unicast",
+                  "admin-state": "disable"
+                }
+              ]
             }
           ],
           "neighbor": [
