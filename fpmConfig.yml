@@ -8,6 +8,8 @@ license: "Apache 2.0"
 contents:                              # contents to add to the package
   - src: ./rpmbuild
     dst: /opt/     # destination path (including yang)
+    type: tree
 
   - src: ./bgp-ping-mesh.yml                        # local path of agent yml
     dst: /etc/opt/srlinux/appmgr/bgp-ping-mesh.yml  # destination path of agent yml
+    type: config
