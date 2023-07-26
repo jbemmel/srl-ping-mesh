@@ -108,9 +108,9 @@ def ListInterfaces(network_instance):
     are not necessary
     """
     from pygnmi.client import gNMIclient
-
+    logging.info( "ListInterfaces through gNMI..." )
     with gNMIclient(target=('unix:///opt/srlinux/var/run/sr_gnmi_server',57400),
-                    username="admin",password="admin",
+                    username="admin",password="NokiaSrl1!",
                     insecure=True, debug=False) as c:
         path = f"/network-instance[name={network_instance}]/interface"
         data = c.get(path=[path],encoding='json_ietf')
