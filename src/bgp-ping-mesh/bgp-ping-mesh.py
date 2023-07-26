@@ -140,7 +140,7 @@ class BGPMonitoringThread(Thread):
 
     netinst = f"srbase-{self.network_instance}"
     while not os.path.exists(f'/var/run/netns/{netinst}'):
-      logging.info(f"Waiting for {netinst} netns to be created...")
+      logging.info(f"BGPMonitoringThread waiting for {netinst} netns to be created...")
       time.sleep(1)
 
     interfaces = ["gateway"] + ListInterfaces( self.network_instance )
@@ -206,6 +206,7 @@ class BGPMonitoringThread(Thread):
        try:
           # Could filter on IP length using ip[2:2] too, minus 14 bytes eth
           filter = "tcp port 179 and (len==85 or len==66)"
+          logging.info( f"Start scapy sniffing on {interfaces}..." )
           sniff( iface=interfaces, filter=filter, stop_filter=stop_filter,
                  prn=check_for_bgp_keepalive, store=False )
           logging.info( f"BGPMonitoringThread: sniff process in '{netinst}' exiting" )
