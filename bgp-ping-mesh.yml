@@ -14,9 +14,4 @@ bgp_ping_mesh:
      - "bgp-ping-mesh"
      source-directories:
      - "/opt/bgp-ping-mesh/yang/"
-     - "/opt/srlinux/models/srl_nokia/models/common/"
-     - "/opt/srlinux/models/srl_nokia/models/network-instance/"
-     - "/opt/srlinux/models/srl_nokia/models/interfaces/"
-     - "/opt/srlinux/models/srl_nokia/models/qos/"
-     - "/opt/srlinux/models/srl_nokia/models/routing-policy/"
-     - "/opt/srlinux/models/srl_nokia/models/system/"
+     - "/opt/srlinux/models/srl_nokia/models/"
