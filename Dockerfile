@@ -22,11 +22,15 @@ RUN yum install -y python3 git && cd /tmp && \
     PYTHONDONTWRITEBYTECODE=1 python3 setup.py install
 
 # Install pygnmi in separate image too, needs build tools and upgraded pip
-RUN yum install -y gcc-c++ && python3 -m pip install pip --upgrade && python3 -m pip install pygnmi
+# RUN yum install -y gcc-c++ && python3 -m pip install pip --upgrade && python3 -m pip install pygnmi
 
 FROM target-image AS final
 COPY --from=latest-scapy /tmp/scapy*  $VIRTUAL_ENV/lib/python3.6/site-packages/
-COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/pygnmi $VIRTUAL_ENV/lib/python3.6/site-packages/
+# COPY --from=latest-scapy /usr/local/lib/python3.6/site-packages/pygnmi $VIRTUAL_ENV/lib/python3.6/site-packages/
+
+# DEBUG for some reason pygnmi not getting installed
+# RUN sudo yum install -y gcc-c++ && python3 -m pip install pip --upgrade && python3 -m pip install pygnmi
+RUN python3 -m pip install pygnmi
 
 RUN sudo mkdir --mode=0755 -p /etc/opt/srlinux/appmgr/
 COPY --chown=srlinux:srlinux ./bgp-ping-mesh.yml /etc/opt/srlinux/appmgr

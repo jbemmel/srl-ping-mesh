@@ -107,22 +107,26 @@ def ListInterfaces(network_instance):
     in the Yang model config, such that this gNMI connection (and user/password)
     are not necessary
     """
-    from pygnmi.client import gNMIclient
-    logging.info( "ListInterfaces through gNMI..." )
-    with gNMIclient(target=('unix:///opt/srlinux/var/run/sr_gnmi_server',57400),
-                    username="admin",password="NokiaSrl1!",
-                    insecure=True, debug=False) as c:
-        path = f"/network-instance[name={network_instance}]/interface"
-        data = c.get(path=[path],encoding='json_ietf')
-        logging.info( f"ListInterfaces: {data}" )
-        res = data['notification'][0]['update'][0]['val']
-
-        def shorten(i):
-            return i.replace("ethernet-","e").replace('/','-')
-
-        return [ shorten( intf['name'] ) for intf in res['interface'] ]
-
-    # return [ "e1-1.0", "e1-2.0" ] # Hardcoded until fixed
+    try:
+      from pygnmi.client import gNMIclient
+      logging.info( "ListInterfaces through gNMI..." )
+      with gNMIclient(target=('unix:///opt/srlinux/var/run/sr_gnmi_server',57400),
+                      username="admin",password="NokiaSrl1!",
+                      insecure=True, debug=False) as c:
+          path = f"/network-instance[name={network_instance}]/interface"
+          data = c.get(path=[path],encoding='json_ietf')
+          logging.info( f"ListInterfaces: {data}" )
+          res = data['notification'][0]['update'][0]['val']
+  
+          def shorten(i):
+              return i.replace("ethernet-","e").replace('/','-')
+  
+          return [ shorten( intf['name'] ) for intf in res['interface'] ]
+  
+      # return [ "e1-1.0", "e1-2.0" ] # Hardcoded until fixed
+    except Exception as e:
+      logging.error(e)
+      return []
 
 from threading import Thread
 class BGPMonitoringThread(Thread):
@@ -141,7 +145,8 @@ class BGPMonitoringThread(Thread):
     netinst = f"srbase-{self.network_instance}"
     while not os.path.exists(f'/var/run/netns/{netinst}'):
       logging.info(f"BGPMonitoringThread waiting for {netinst} netns to be created...")
-      time.sleep(1)
+      time.sleep(5)
+    logging.info( "Done waiting" )
 
     interfaces = ["gateway"] + ListInterfaces( self.network_instance )
 
@@ -285,6 +290,9 @@ def Run():
             else:
                 Handle_Notification(obj, state)
                 logging.info(f'Updated state: {state}')
+
+    except Exception as e:
+      logging.error(e)
 
     finally:
       Exit_Gracefully(0,0)
